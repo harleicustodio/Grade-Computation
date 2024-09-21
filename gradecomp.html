@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Calculator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url(pink.gif); 
+            background-size: cover;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+            font-weight: 200;
+        }
+
+        .calculator-container {
+            background-color: rgba(255, 30, 124, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        label {
+            width: 100%;
+            text-align: left;
+            padding-left: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ffffff;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            background-color: #e20057;
+            color: rgb(255, 255, 255);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ff0062;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .error {
+            color: rgb(175, 0, 0);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h2>Grade Calculator</h2>
+        <p>Enter your Prelim grade and your Desired passing grade.</p>
+        <p>In order to become a Dean's lister your Desired grade should be above 90</p>
+
+        <label for="prelim">Prelim Grade (0-100):</label>
+        <input type="text" id="prelim" placeholder="Enter your Prelim grade" oninput="validateInput(this)">
+
+        <label for="passing">Desired Passing Grade (70-100):</label>
+        <input type="text" id="passing" placeholder="Enter desired passing grade (Default is 75)" oninput="validateInput(this)">
+
+        <button onclick="calculateRequiredGrades()">Calculate</button>
+
+        <div id="message" class="result"></div>
+    </div>
+
+    <script>
+        // Function to restrict input to only numbers and decimals
+        function validateInput(input) {
+            const value = input.value;
+            const numberPattern = /^[0-9]*\.?[0-9]*$/;
+
+            if (!numberPattern.test(value)) {
+                input.value = value.slice(0, -1); // Remove the last invalid character
+                document.getElementById('message').innerHTML = "<p class='error'>Only numbers are allowed!</p>";
+            } else {
+                document.getElementById('message').innerHTML = ""; // Clear error message
+            }
+        }
+
+        function calculateRequiredGrades() {
+            // Get user input
+            const prelimInput = document.getElementById('prelim').value;
+            const prelimGrade = parseFloat(prelimInput);
+            const passingInput = document.getElementById('passing').value;
+            const passingGrade = passingInput ? parseFloat(passingInput) : 75; // Default to 75 if no input
+
+            // Input validation for Prelim Grade
+            if (isNaN(prelimGrade) || prelimGrade < 0 || prelimGrade > 100) {
+                document.getElementById('message').innerHTML = "<p class='error'>Please enter a valid Prelim grade between 0 and 100.</p>";
+                return;
+            }
+
+            // Input validation for Passing Grade
+            if (isNaN(passingGrade) || passingGrade < 70 || passingGrade > 100) {
+                document.getElementById('message').innerHTML = "<p class='error'>You do not want grades below 70, don't you? Please enter a valid passing grade between 70 and 100.</p>";
+                return;
+            }
+
+            const prelimWeight = 0.20;
+            const midtermWeight = 0.30;
+            const finalWeight = 0.50;
+
+            
+            const prelimContribution = prelimWeight * prelimGrade;
+
+            
+            if (prelimContribution >= passingGrade) {
+                document.getElementById('message').innerHTML = `<p>Your Prelim grade of <strong>${prelimGrade}</strong> already satisfies the passing requirement of <strong>${passingGrade}</strong>. Well done!</p>`;
+                return;
+            }
+           
+            const remainingGrade = passingGrade - prelimContribution;
+
+           
+            const requiredMidterm = (remainingGrade - finalWeight * 100) / midtermWeight;  
+            const requiredFinal = (remainingGrade - midtermWeight * 100) / finalWeight;  
+
+           
+            let message = `<p>To achieve a passing grade of <strong>${passingGrade}</strong>:</p>`;
+
+            if (requiredMidterm >= 0 && requiredMidterm <= 100) {
+                message += `<p>You need at least <strong>${requiredMidterm.toFixed(2)}</strong> in the Midterm (assuming you get 100 in Final).</p>`;
+            }
+
+            if (requiredFinal >= 0 && requiredFinal <= 100) {
+                message += `<p>You need at least <strong>${requiredFinal.toFixed(2)}</strong> in the Final (assuming you get 100 in Midterm).</p>`;
+            }
+
+            // If both are above 100, show that it's impossible to achieve the passing grade
+            if (requiredMidterm > 100 && requiredFinal > 100) {
+                message = `<p class='error'>It is impossible to achieve a passing grade of ${passingGrade} based on your Prelim grade.</p>`;
+            }
+
+            document.getElementById('message').innerHTML = message;
+        }
+    </script>
+
+</body>
+</html>
